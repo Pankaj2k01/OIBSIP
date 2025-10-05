@@ -70,6 +70,7 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authLimiter, require('./routes/auth'));
+app.use('/api/pizza', require('./routes/pizza'));
 
 // Welcome route
 app.get('/', (req, res) => {
