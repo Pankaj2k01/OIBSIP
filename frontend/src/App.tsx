@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './pages/user/Dashboard';
+import PizzaBuilderPage from './pages/user/PizzaBuilderPage';
 
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -33,6 +34,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/pizza-builder" 
+                element={
+                  <ProtectedRoute>
+                    <PizzaBuilderPage />
                   </ProtectedRoute>
                 } 
               />

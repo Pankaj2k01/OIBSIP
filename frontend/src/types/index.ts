@@ -64,46 +64,128 @@ export interface AuthContextType {
   updateUser: (userData: Partial<User>) => void;
 }
 
-// Pizza Types (to be expanded later)
+// Pizza Ingredient Types
 export interface PizzaBase {
-  id: string;
+  _id: string;
   name: string;
-  price: number;
   description: string;
+  price: number;
   image: string;
   stock: number;
+  threshold: number;
+  isActive: boolean;
+  nutritionalInfo?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PizzaSauce {
-  id: string;
+  _id: string;
   name: string;
-  price: number;
   description: string;
+  price: number;
+  spiceLevel: 'Mild' | 'Medium' | 'Hot' | 'Extra Hot';
   stock: number;
+  threshold: number;
+  isActive: boolean;
+  ingredients: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PizzaCheese {
-  id: string;
+  _id: string;
   name: string;
-  price: number;
   description: string;
+  price: number;
+  type: 'Fresh' | 'Aged' | 'Processed' | 'Organic';
   stock: number;
+  threshold: number;
+  isActive: boolean;
+  origin?: string;
+  nutritionalInfo?: {
+    calories: number;
+    protein: number;
+    fat: number;
+    calcium: number;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PizzaVeggie {
-  id: string;
+  _id: string;
   name: string;
-  price: number;
   description: string;
+  price: number;
+  category: 'Leafy Greens' | 'Root Vegetables' | 'Peppers' | 'Onions' | 'Mushrooms' | 'Tomatoes' | 'Other';
   stock: number;
+  threshold: number;
+  isActive: boolean;
+  isOrganic: boolean;
+  seasonality: string[];
+  nutritionalInfo?: {
+    calories: number;
+    fiber: number;
+    vitamins: string[];
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PizzaMeat {
-  id: string;
+  _id: string;
   name: string;
-  price: number;
   description: string;
+  price: number;
+  type: 'Poultry' | 'Pork' | 'Beef' | 'Seafood' | 'Processed';
   stock: number;
+  threshold: number;
+  isActive: boolean;
+  isHalal: boolean;
+  spiceLevel: 'None' | 'Mild' | 'Medium' | 'Hot';
+  cookingMethod: 'Grilled' | 'Smoked' | 'Roasted' | 'Cured' | 'Fried';
+  nutritionalInfo?: {
+    calories: number;
+    protein: number;
+    fat: number;
+    sodium: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Pizza Ingredients Response from API
+export interface PizzaIngredientsResponse {
+  success: boolean;
+  data: {
+    bases: PizzaBase[];
+    sauces: PizzaSauce[];
+    cheeses: PizzaCheese[];
+    veggies: PizzaVeggie[];
+    meats: PizzaMeat[];
+  };
+}
+
+// Pizza Builder State
+export interface PizzaBuilderState {
+  currentStep: number;
+  selectedBase: PizzaBase | null;
+  selectedSauce: PizzaSauce | null;
+  selectedCheese: PizzaCheese | null;
+  selectedVeggies: PizzaVeggie[];
+  selectedMeats: PizzaMeat[];
+  customizations: {
+    size: 'Small' | 'Medium' | 'Large' | 'Extra Large';
+    crustType: 'Thin' | 'Thick' | 'Stuffed';
+    specialInstructions: string;
+  };
+  totalPrice: number;
 }
 
 // Pizza Customization
@@ -113,7 +195,23 @@ export interface CustomPizza {
   cheese: PizzaCheese;
   veggies: PizzaVeggie[];
   meats: PizzaMeat[];
+  customizations: {
+    size: 'Small' | 'Medium' | 'Large' | 'Extra Large';
+    crustType: 'Thin' | 'Thick' | 'Stuffed';
+    specialInstructions: string;
+  };
+  quantity: number;
   totalPrice: number;
+}
+
+// Pizza Builder Step
+export interface PizzaBuilderStep {
+  id: number;
+  title: string;
+  description: string;
+  component: string;
+  isRequired: boolean;
+  isCompleted: boolean;
 }
 
 // Order Types

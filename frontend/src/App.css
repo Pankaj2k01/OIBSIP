@@ -61,6 +61,88 @@ main {
   width: 1rem;
   height: 1rem;
 }
+
+/* Pizza Builder specific styles */
+.hover-shadow:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-2px);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Progress bar styling */
+.progress {
+  height: 8px;
+}
+
+/* Card transitions */
+.card {
+  transition: all 0.2s ease;
+}
+
+/* Badge styling */
+.badge {
+  font-size: 0.75em;
+}
+
+/* Step indicator styles */
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+.step-indicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #dee2e6;
+  z-index: 1;
+}
+
+.step-indicator .step {
+  position: relative;
+  z-index: 2;
+  background-color: white;
+  padding: 0 10px;
+}
+
+/* Animation for selections */
+@keyframes selectAnimation {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.selected-item {
+  animation: selectAnimation 0.3s ease;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .pizza-builder-steps {
+    font-size: 0.7rem;
+  }
+  
+  .progress {
+    height: 6px;
+  }
+  
+  .card-title {
+    font-size: 1rem;
+  }
+}
   }
   to {
     transform: rotate(360deg);
