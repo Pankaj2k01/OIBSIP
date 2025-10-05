@@ -403,12 +403,248 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get user's orders with pagination and filtering
+ * @route   GET /api/orders/user
+ * @access  Private
+ */
+const getUserOrdersWithPagination = asyncHandler(async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status;
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+    
+    const filter = { userId: req.user.id };
+    if (status) filter.status = status;
+    
+    const orders = await Order.find(filter)
+      .sort({ [sortBy]: sortOrder })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select('orderId status totalAmount createdAt items')
+      .lean();
+    
+    // Add items count to each order
+    const ordersWithCount = orders.map(order => ({
+      ...order,
+      itemsCount: order.items.reduce((sum, item) => sum + item.quantity, 0)
+    }));
+    
+    const totalOrders = await Order.countDocuments(filter);
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        orders: ordersWithCount,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalOrders / limit),
+          totalOrders,
+          hasNextPage: page < Math.ceil(totalOrders / limit),
+          hasPrevPage: page > 1
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get user orders with pagination error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user orders'
+    });
+  }
+});
+
+/**
+ * @desc    Cancel order (user)
+ * @route   PUT /api/orders/:orderId/cancel
+ * @access  Private
+ */
+const cancelOrder = asyncHandler(async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { reason } = req.body;
+    
+    const order = await Order.findOne({ 
+      _id: orderId, 
+      userId: req.user.id 
+    });
+    
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+    
+    // Check if order can be cancelled
+    const cancellableStatuses = ['pending', 'confirmed'];
+    if (!cancellableStatuses.includes(order.status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order cannot be cancelled at this stage'
+      });
+    }
+    
+    // Update order status
+    order.status = 'cancelled';
+    order.tracking.push({
+      status: 'cancelled',
+      message: reason || 'Order cancelled by customer',
+      timestamp: new Date()
+    });
+    
+    await order.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Order cancelled successfully',
+      data: order
+    });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to cancel order'
+    });
+  }
+});
+
+/**
+ * @desc    Request refund for order
+ * @route   POST /api/orders/:orderId/refund
+ * @access  Private
+ */
+const requestRefund = asyncHandler(async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { reason } = req.body;
+    
+    const order = await Order.findOne({ 
+      _id: orderId, 
+      userId: req.user.id 
+    });
+    
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+    
+    // Check if refund can be requested
+    if (order.paymentStatus !== 'paid') {
+      return res.status(400).json({
+        success: false,
+        message: 'Refund can only be requested for paid orders'
+      });
+    }
+    
+    if (order.status === 'delivered') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot request refund for delivered orders'
+      });
+    }
+    
+    // Add refund request to order
+    order.refundRequested = true;
+    order.refundReason = reason;
+    order.refundRequestedAt = new Date();
+    
+    order.tracking.push({
+      status: order.status,
+      message: 'Refund requested by customer',
+      timestamp: new Date()
+    });
+    
+    await order.save();
+    
+    // TODO: Integrate with Razorpay refund API
+    console.log(`Refund requested for order ${order.orderId}: ${reason}`);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Refund request submitted successfully. We will process it within 3-5 business days.'
+    });
+  } catch (error) {
+    console.error('Request refund error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to request refund'
+    });
+  }
+});
+
+/**
+ * @desc    Rate and review order
+ * @route   POST /api/orders/:orderId/rate
+ * @access  Private
+ */
+const rateOrder = asyncHandler(async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { rating, review } = req.body;
+    
+    const order = await Order.findOne({ 
+      _id: orderId, 
+      userId: req.user.id 
+    });
+    
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+    
+    // Check if order is delivered
+    if (order.status !== 'delivered') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order must be delivered to submit a rating'
+      });
+    }
+    
+    // Validate rating
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating must be between 1 and 5'
+      });
+    }
+    
+    // Update order with rating
+    order.rating = rating;
+    order.review = review;
+    order.ratedAt = new Date();
+    
+    await order.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Thank you for your feedback!'
+    });
+  } catch (error) {
+    console.error('Rate order error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit rating'
+    });
+  }
+});
+
 module.exports = {
   createPaymentOrder,
-  verifyPayment,
+  verifyPaymentAndPlaceOrder,
   getUserOrders,
   getOrderById,
+  updateOrderStatus,
+  handleWebhook,
+  getUserOrdersWithPagination,
   cancelOrder,
-  getAllOrders,
-  updateOrderStatus
+  requestRefund,
+  rateOrder
+};
 };

@@ -54,10 +54,15 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-  orderNumber: {
+  orderId: {
     type: String,
     unique: true,
     required: true
+  },
+  // Legacy field name support
+  orderNumber: {
+    type: String,
+    unique: true
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -78,7 +83,7 @@ const orderSchema = new mongoose.Schema({
       'preparing',
       'baking',
       'ready',
-      'out_for_delivery',
+      'out-for-delivery',
       'delivered',
       'cancelled'
     ],
@@ -86,14 +91,19 @@ const orderSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'completed', 'failed', 'refunded'],
+    enum: ['pending', 'paid', 'failed', 'refunded'],
     default: 'pending'
   },
   paymentId: {
-    type: String,
-    required: [true, 'Payment ID is required']
+    type: String
   },
   razorpayOrderId: {
+    type: String
+  },
+  razorpayPaymentId: {
+    type: String
+  },
+  razorpaySignature: {
     type: String
   },
   deliveryAddress: {
@@ -112,7 +122,14 @@ const orderSchema = new mongoose.Schema({
     zipCode: {
       type: String,
       required: [true, 'Zip code is required']
+    },
+    landmark: {
+      type: String
     }
+  },
+  deliveryInstructions: {
+    type: String,
+    maxLength: [500, 'Delivery instructions cannot exceed 500 characters']
   },
   estimatedDeliveryTime: {
     type: Date
@@ -120,6 +137,22 @@ const orderSchema = new mongoose.Schema({
   actualDeliveryTime: {
     type: Date
   },
+  // New tracking system
+  tracking: [{
+    status: {
+      type: String,
+      required: true
+    },
+    message: {
+      type: String,
+      required: true
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  // Legacy status history (for backward compatibility)
   statusHistory: [{
     status: {
       type: String,
@@ -133,6 +166,42 @@ const orderSchema = new mongoose.Schema({
       type: String
     }
   }],
+  // Rating and review system
+  rating: {
+    type: Number,
+    min: [1, 'Rating must be at least 1'],
+    max: [5, 'Rating cannot exceed 5']
+  },
+  review: {
+    type: String,
+    maxLength: [1000, 'Review cannot exceed 1000 characters']
+  },
+  ratedAt: {
+    type: Date
+  },
+  // Refund system
+  refundRequested: {
+    type: Boolean,
+    default: false
+  },
+  refundReason: {
+    type: String,
+    maxLength: [500, 'Refund reason cannot exceed 500 characters']
+  },
+  refundRequestedAt: {
+    type: Date
+  },
+  refundProcessed: {
+    type: Boolean,
+    default: false
+  },
+  refundProcessedAt: {
+    type: Date
+  },
+  refundAmount: {
+    type: Number,
+    min: [0, 'Refund amount cannot be negative']
+  },
   notes: {
     type: String,
     maxLength: [1000, 'Notes cannot exceed 1000 characters']
@@ -141,13 +210,15 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Pre-save middleware to generate order number
+// Pre-save middleware to generate order ID and number
 orderSchema.pre('save', async function(next) {
-  if (!this.orderNumber) {
+  if (!this.orderId && !this.orderNumber) {
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
     const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    this.orderNumber = `PZ${dateStr}${randomNum}`;
+    const orderRef = `PZ${dateStr}${randomNum}`;
+    this.orderId = orderRef;
+    this.orderNumber = orderRef; // For backward compatibility
   }
   next();
 });
@@ -165,9 +236,12 @@ orderSchema.pre('save', function(next) {
 
 // Indexes for efficient queries
 orderSchema.index({ userId: 1 });
+orderSchema.index({ orderId: 1 });
 orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
+orderSchema.index({ userId: 1, status: 1 });
+orderSchema.index({ userId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Order', orderSchema);
