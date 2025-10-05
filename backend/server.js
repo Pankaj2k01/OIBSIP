@@ -8,6 +8,7 @@ const { validateRazorpayConfig } = require('./config/razorpay');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const { razorpayValidation } = require('./middleware/razorpayValidation');
 const { inventoryMonitor } = require('./services/inventoryMonitor');
+const { emailService } = require('./services/emailService');
 
 // Initialize Express app
 const app = express();

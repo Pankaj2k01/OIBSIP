@@ -7,6 +7,7 @@ const PizzaVeggie = require('../models/PizzaVeggie');
 const PizzaMeat = require('../models/PizzaMeat');
 const asyncHandler = require('express-async-handler');
 const { validationResult } = require('express-validator');
+const { emailService } = require('../services/emailService');
 
 /**
  * @desc    Get admin dashboard overview
@@ -313,13 +314,15 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     const { orderId } = req.params;
     const { status, notes } = req.body;
     
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate('userId', 'name email');
     if (!order) {
       return res.status(404).json({
         success: false,
         message: 'Order not found'
       });
     }
+    
+    const oldStatus = order.status;
     
     // Update order status and tracking
     order.status = status;
@@ -337,7 +340,28 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       });
     }
     
+    // Set actual delivery time if delivered
+    if (status === 'delivered' && oldStatus !== 'delivered') {
+      order.actualDeliveryTime = new Date();
+    }
+    
     await order.save();
+    
+    // Send email notification if status changed and user exists
+    if (oldStatus !== status && order.userId) {
+      try {
+        const statusMessage = notes || `Order status updated to ${status}`;
+        if (status === 'delivered') {
+          await emailService.sendOrderDeliveredNotification(order, order.userId);
+        } else {
+          await emailService.sendOrderStatusUpdate(order, order.userId, statusMessage);
+        }
+        console.log(`✅ Order status email sent for order ${order.orderId}`);
+      } catch (emailError) {
+        console.error('⚠️ Failed to send order status email:', emailError.message);
+        // Don't fail the status update if email fails
+      }
+    }
     
     res.status(200).json({
       success: true,

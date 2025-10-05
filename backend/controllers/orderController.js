@@ -4,9 +4,11 @@ const PizzaSauce = require('../models/PizzaSauce');
 const PizzaCheese = require('../models/PizzaCheese');
 const PizzaVeggie = require('../models/PizzaVeggie');
 const PizzaMeat = require('../models/PizzaMeat');
+const User = require('../models/User');
 const { razorpay } = require('../config/razorpay');
 const { validationResult } = require('express-validator');
 const crypto = require('crypto');
+const { emailService } = require('../services/emailService');
 
 // Size multipliers (should match frontend)
 const SIZE_MULTIPLIERS = {
@@ -189,6 +191,15 @@ const verifyPayment = async (req, res) => {
     const populatedOrder = await Order.findById(order._id)
       .populate('userId', 'name email phone')
       .populate('items.baseId items.sauceId items.cheeseId items.veggieIds items.meatIds');
+
+    // Send order confirmation email
+    try {
+      await emailService.sendOrderConfirmation(populatedOrder, populatedOrder.userId);
+      console.log('✅ Order confirmation email sent');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send order confirmation email:', emailError.message);
+      // Don't fail the order process if email fails
+    }
 
     res.status(200).json({
       success: true,

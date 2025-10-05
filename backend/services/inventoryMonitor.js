@@ -5,6 +5,7 @@ const PizzaVeggie = require('../models/PizzaVeggie');
 const PizzaMeat = require('../models/PizzaMeat');
 const User = require('../models/User');
 const cron = require('node-cron');
+const { emailService } = require('./emailService');
 
 /**
  * Inventory Monitoring Service
@@ -159,22 +160,42 @@ class InventoryMonitor {
         return;
       }
 
-      const notification = this.generateStockNotification(lowStockItems, outOfStockItems);
+      const adminEmails = adminUsers.map(user => user.email);
+      const stockData = {
+        lowStockItems,
+        outOfStockItems,
+        timestamp: new Date().toLocaleString()
+      };
       
-      console.log('📧 Stock notification prepared:', {
-        recipients: adminUsers.length,
+      console.log('📧 Sending stock alert emails to:', {
+        recipients: adminEmails.length,
         lowStock: lowStockItems.length,
         outOfStock: outOfStockItems.length
       });
 
-      // TODO: Implement email service integration
-      // For now, log the notification (email integration will be added in Module 8)
-      console.log('📬 Stock Alert Notification:', notification);
+      // Send email notifications using email service
+      const emailResult = await emailService.sendStockAlert(stockData, adminEmails);
+      
+      if (emailResult) {
+        console.log('✅ Stock alert emails sent successfully');
+      } else {
+        console.log('⚠️  Email service not available, logging notification instead');
+        const notification = this.generateStockNotification(lowStockItems, outOfStockItems);
+        console.log('📬 Stock Alert Notification:', notification);
+      }
 
-      return notification;
+      return {
+        emailsSent: !!emailResult,
+        recipients: adminEmails.length,
+        stockData
+      };
 
     } catch (error) {
       console.error('❌ Failed to send stock notifications:', error.message);
+      
+      // Fallback to console logging
+      const notification = this.generateStockNotification(lowStockItems, outOfStockItems);
+      console.log('📬 Fallback Stock Alert:', notification);
     }
   }
 
