@@ -7,6 +7,7 @@ const connectDB = require('./config/database');
 const { validateRazorpayConfig } = require('./config/razorpay');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const { razorpayValidation } = require('./middleware/razorpayValidation');
+const { inventoryMonitor } = require('./services/inventoryMonitor');
 
 // Initialize Express app
 const app = express();
@@ -74,6 +75,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/pizza', require('./routes/pizza'));
 app.use('/api/orders', razorpayValidation, require('./routes/orders'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Welcome route
 app.get('/', (req, res) => {
@@ -100,12 +102,16 @@ const server = app.listen(PORT, () => {
 🔗 URL: http://localhost:${PORT}
 📚 Health Check: http://localhost:${PORT}/health
   `);
+  
+  // Start inventory monitoring service
+  inventoryMonitor.start();
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.log(`Error: ${err.message}`);
-  // Close server & exit process
+  // Stop inventory monitor and close server
+  inventoryMonitor.stop();
   server.close(() => {
     process.exit(1);
   });
@@ -115,6 +121,7 @@ process.on('unhandledRejection', (err, promise) => {
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM received');
   console.log('✋ Shutting down gracefully');
+  inventoryMonitor.stop();
   server.close(() => {
     console.log('💥 Process terminated');
   });

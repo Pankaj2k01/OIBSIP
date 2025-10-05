@@ -1,4 +1,4 @@
-const { body } = require('express-validator');
+const { body, query } = require('express-validator');
 
 // User registration validation
 const validateRegistration = [
@@ -177,12 +177,84 @@ const validateUpdateOrderStatus = [
     .withMessage('Note cannot exceed 500 characters')
 ];
 
+// Admin validation rules
+const validateInventoryUpdate = [
+  body('stock')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Stock must be a non-negative integer'),
+  
+  body('threshold')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Threshold must be a non-negative integer'),
+  
+  body('price')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Price must be a non-negative number'),
+  
+  body('isAvailable')
+    .optional()
+    .isBoolean()
+    .withMessage('isAvailable must be a boolean value')
+];
+
+const validateOrderStatusUpdate = [
+  body('status')
+    .isIn(['pending', 'confirmed', 'preparing', 'baking', 'ready', 'out-for-delivery', 'delivered', 'cancelled'])
+    .withMessage('Invalid order status'),
+  
+  body('notes')
+    .optional()
+    .isString()
+    .isLength({ max: 500 })
+    .withMessage('Notes must be a string with maximum 500 characters')
+    .trim()
+    .escape()
+];
+
+const validateAdminQuery = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
+  
+  query('sortBy')
+    .optional()
+    .isIn(['createdAt', 'totalAmount', 'status', 'name'])
+    .withMessage('Invalid sortBy field'),
+  
+  query('sortOrder')
+    .optional()
+    .isIn(['asc', 'desc'])
+    .withMessage('SortOrder must be either asc or desc'),
+  
+  query('status')
+    .optional()
+    .isIn(['pending', 'confirmed', 'preparing', 'baking', 'ready', 'out-for-delivery', 'delivered', 'cancelled'])
+    .withMessage('Invalid status filter'),
+  
+  query('period')
+    .optional()
+    .isIn(['7d', '30d', '90d'])
+    .withMessage('Invalid period, must be 7d, 30d, or 90d')
+];
+
 module.exports = {
   validateRegistration,
   validateLogin,
   validateForgotPassword,
   validateResetPassword,
-  validateUpdateProfile,
-  validateCreateOrder,
-  validateUpdateOrderStatus
+  validateVerifyEmail,
+  validateOrderCreation,
+  validatePaymentVerification,
+  validateInventoryUpdate,
+  validateOrderStatusUpdate,
+  validateAdminQuery
 };
