@@ -4,7 +4,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/database');
+const { validateRazorpayConfig } = require('./config/razorpay');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const { razorpayValidation } = require('./middleware/razorpayValidation');
 
 // Initialize Express app
 const app = express();
@@ -71,6 +73,7 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/pizza', require('./routes/pizza'));
+app.use('/api/orders', razorpayValidation, require('./routes/orders'));
 
 // Welcome route
 app.get('/', (req, res) => {

@@ -108,10 +108,81 @@ const validateUpdateProfile = [
     .withMessage('Please enter a valid zip code')
 ];
 
+// Order validation
+const validateCreateOrder = [
+  body('items')
+    .isArray({ min: 1 })
+    .withMessage('At least one item is required'),
+  
+  body('items.*.baseId')
+    .isMongoId()
+    .withMessage('Valid base ID is required'),
+  
+  body('items.*.sauceId')
+    .isMongoId()
+    .withMessage('Valid sauce ID is required'),
+  
+  body('items.*.cheeseId')
+    .isMongoId()
+    .withMessage('Valid cheese ID is required'),
+  
+  body('items.*.quantity')
+    .isInt({ min: 1, max: 10 })
+    .withMessage('Quantity must be between 1 and 10'),
+  
+  body('items.*.veggieIds')
+    .optional()
+    .isArray()
+    .withMessage('Veggie IDs must be an array'),
+  
+  body('items.*.meatIds')
+    .optional()
+    .isArray()
+    .withMessage('Meat IDs must be an array'),
+  
+  body('items.*.customizations.size')
+    .isIn(['Small', 'Medium', 'Large', 'Extra Large'])
+    .withMessage('Invalid size selected'),
+  
+  body('items.*.customizations.crustType')
+    .isIn(['Thin', 'Thick', 'Stuffed'])
+    .withMessage('Invalid crust type selected'),
+  
+  body('deliveryAddress.street')
+    .notEmpty()
+    .withMessage('Delivery street address is required'),
+  
+  body('deliveryAddress.city')
+    .notEmpty()
+    .withMessage('Delivery city is required'),
+  
+  body('deliveryAddress.state')
+    .notEmpty()
+    .withMessage('Delivery state is required'),
+  
+  body('deliveryAddress.zipCode')
+    .matches(/^\d{5,6}$/)
+    .withMessage('Valid delivery zip code is required')
+];
+
+// Order status validation
+const validateUpdateOrderStatus = [
+  body('status')
+    .isIn(['pending', 'confirmed', 'preparing', 'baking', 'ready', 'out_for_delivery', 'delivered', 'cancelled'])
+    .withMessage('Invalid order status'),
+  
+  body('note')
+    .optional()
+    .isLength({ max: 500 })
+    .withMessage('Note cannot exceed 500 characters')
+];
+
 module.exports = {
   validateRegistration,
   validateLogin,
   validateForgotPassword,
   validateResetPassword,
-  validateUpdateProfile
+  validateUpdateProfile,
+  validateCreateOrder,
+  validateUpdateOrderStatus
 };
