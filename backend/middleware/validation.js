@@ -74,6 +74,15 @@ const validateResetPassword = [
     .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number')
 ];
 
+// Email verification validation
+const validateVerifyEmail = [
+  body('token')
+    .notEmpty()
+    .withMessage('Verification token is required')
+    .isLength({ min: 32 })
+    .withMessage('Invalid verification token format')
+];
+
 // Update profile validation
 const validateUpdateProfile = [
   body('name')
@@ -200,19 +209,6 @@ const validateInventoryUpdate = [
     .withMessage('isAvailable must be a boolean value')
 ];
 
-const validateOrderStatusUpdate = [
-  body('status')
-    .isIn(['pending', 'confirmed', 'preparing', 'baking', 'ready', 'out-for-delivery', 'delivered', 'cancelled'])
-    .withMessage('Invalid order status'),
-  
-  body('notes')
-    .optional()
-    .isString()
-    .isLength({ max: 500 })
-    .withMessage('Notes must be a string with maximum 500 characters')
-    .trim()
-    .escape()
-];
 
 const validateAdminQuery = [
   query('page')
@@ -252,9 +248,9 @@ module.exports = {
   validateForgotPassword,
   validateResetPassword,
   validateVerifyEmail,
-  validateOrderCreation,
-  validatePaymentVerification,
+  validateUpdateProfile,
+  validateCreateOrder,
+  validateUpdateOrderStatus,
   validateInventoryUpdate,
-  validateOrderStatusUpdate,
   validateAdminQuery
 };

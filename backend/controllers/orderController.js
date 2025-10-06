@@ -9,6 +9,7 @@ const { razorpay } = require('../config/razorpay');
 const { validationResult } = require('express-validator');
 const crypto = require('crypto');
 const { emailService } = require('../services/emailService');
+const asyncHandler = require('../utils/asyncHandler');
 
 // Size multipliers (should match frontend)
 const SIZE_MULTIPLIERS = {
@@ -136,7 +137,7 @@ const createPaymentOrder = async (req, res) => {
 };
 
 // Verify payment and update order
-const verifyPayment = async (req, res) => {
+const verifyPaymentAndPlaceOrder = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
@@ -280,44 +281,6 @@ const getOrderById = async (req, res) => {
   }
 };
 
-// Cancel order (only if not confirmed)
-const cancelOrder = async (req, res) => {
-  try {
-    const order = await Order.findOne({ 
-      _id: req.params.id, 
-      userId: req.user._id 
-    });
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
-    }
-
-    if (['confirmed', 'preparing', 'baking', 'ready', 'out_for_delivery', 'delivered'].includes(order.status)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Order cannot be cancelled at this stage'
-      });
-    }
-
-    order.status = 'cancelled';
-    await order.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'Order cancelled successfully',
-      data: { order }
-    });
-  } catch (error) {
-    console.error('Cancel order error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error cancelling order'
-    });
-  }
-};
 
 // Admin: Get all orders
 const getAllOrders = async (req, res) => {
@@ -651,11 +614,10 @@ module.exports = {
   verifyPaymentAndPlaceOrder,
   getUserOrders,
   getOrderById,
+  getAllOrders,
   updateOrderStatus,
-  handleWebhook,
   getUserOrdersWithPagination,
   cancelOrder,
   requestRefund,
   rateOrder
-};
 };

@@ -19,7 +19,7 @@ const { inventoryMonitor } = require('../services/inventoryMonitor');
 const { protect, adminOnly } = require('../middleware/auth');
 const {
   validateInventoryUpdate,
-  validateOrderStatusUpdate,
+  validateUpdateOrderStatus,
   validateAdminQuery
 } = require('../middleware/validation');
 
@@ -136,7 +136,7 @@ router.get('/orders', validateAdminQuery, getAllOrders);
 // @access  Private/Admin
 router.put('/orders/:orderId/status',
   updateLimiter,
-  validateOrderStatusUpdate,
+  validateUpdateOrderStatus,
   updateOrderStatus
 );
 
@@ -167,7 +167,7 @@ router.post('/reports/export', (req, res) => {
 /**
  * Error handling for invalid admin routes
  */
-router.use('*', (req, res) => {
+router.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Admin route ${req.originalUrl} not found`

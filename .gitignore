@@ -74,3 +74,18 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Project specific
+**/templates/email/*.hbs
+**/.pm2
+**/uploads/
+**/data/
+
+# Backend specific
+backend/node_modules/
+backend/.env
+
+# Frontend specific (if added later)
+frontend/node_modules/
+frontend/build/
+frontend/.env

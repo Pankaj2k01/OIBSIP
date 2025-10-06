@@ -5,7 +5,7 @@ const PizzaSauce = require('../models/PizzaSauce');
 const PizzaCheese = require('../models/PizzaCheese');
 const PizzaVeggie = require('../models/PizzaVeggie');
 const PizzaMeat = require('../models/PizzaMeat');
-const asyncHandler = require('express-async-handler');
+const asyncHandler = require('../utils/asyncHandler');
 const { validationResult } = require('express-validator');
 const { emailService } = require('../services/emailService');
 

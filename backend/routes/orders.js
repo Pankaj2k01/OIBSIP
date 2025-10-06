@@ -5,8 +5,8 @@ const {
   verifyPaymentAndPlaceOrder,
   getUserOrders,
   getOrderById,
+  getAllOrders,
   updateOrderStatus,
-  handleWebhook,
   getUserOrdersWithPagination,
   cancelOrder,
   requestRefund,
@@ -14,16 +14,14 @@ const {
 } = require('../controllers/orderController');
 const { protect, adminOnly } = require('../middleware/auth');
 const {
-  validateOrderCreation,
-  validatePaymentVerification,
-  validateOrderStatusUpdate,
+  validateCreateOrder,
+  validateUpdateOrderStatus,
   validateAdminQuery
 } = require('../middleware/validation');
 
 // Payment routes
-router.post('/create-payment-order', protect, validateOrderCreation, createPaymentOrder);
-router.post('/verify-payment', protect, validatePaymentVerification, verifyPaymentAndPlaceOrder);
-router.post('/webhook', handleWebhook); // No auth needed for webhook
+router.post('/create-payment-order', protect, validateCreateOrder, createPaymentOrder);
+router.post('/verify-payment', protect, verifyPaymentAndPlaceOrder);
 
 // User order management routes
 router.get('/user', protect, validateAdminQuery, getUserOrdersWithPagination);
@@ -36,6 +34,6 @@ router.post('/:id/rate', protect, rateOrder);
 router.get('/my-orders', protect, getUserOrders);
 
 // Admin routes (handled by admin router now, keeping for compatibility)
-router.put('/:id/status', protect, adminOnly, validateOrderStatusUpdate, updateOrderStatus);
+router.put('/:id/status', protect, adminOnly, validateUpdateOrderStatus, updateOrderStatus);
 
 module.exports = router;
