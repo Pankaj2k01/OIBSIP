@@ -74,7 +74,7 @@ A comprehensive full-stack pizza ordering system built with Node.js, Express, Mo
 ## 🏗 Project Structure
 
 ```
-pizza-ordering-system/
+OIBSIP/
 ├── backend/
 │   ├── config/
 │   │   ├── database.js         # MongoDB connection
@@ -131,8 +131,8 @@ pizza-ordering-system/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/pizza-ordering-system.git
-   cd pizza-ordering-system
+   git clone https://github.com/Pankaj2k01/OIBSIP.git
+   cd OIBSIP
    ```
 
 2. **Install backend dependencies**
@@ -150,12 +150,6 @@ pizza-ordering-system/
    NODE_ENV=development
    PORT=5000
    
-   # Database
-   MONGODB_URI=your_mongodb_atlas_connection_string
-   
-   # JWT
-   JWT_SECRET=your_jwt_secret_key
-   JWT_EXPIRE=30d
    
    # Razorpay
    RAZORPAY_KEY_ID=your_razorpay_key_id
@@ -292,9 +286,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Nodemailer for email functionality
 - All the amazing open-source packages used in this project
 
-## 📞 Support
-
-For support, email support@pizzaorder.com or create an issue on GitHub.
 
 ---
 
