@@ -81,6 +81,18 @@ A full-stack pizza ordering application built with React, Node.js, Express, and 
    npm run start-client
    ```
 
+## Test Credentials
+
+For testing purposes, you can use the following login details:
+
+- **Admin Login:**
+  - Email: admin@example.com
+  - Password: admin123
+
+- **User Login:**
+  - Email: user@example.com
+  - Password: password123
+
 ## Usage
 
 ### User Flow
@@ -142,5 +154,3 @@ Configured with Mailtrap for testing. Update SMTP settings for production.
 3. Commit changes
 4. Push to branch
 5. Create a Pull Request
-
-
