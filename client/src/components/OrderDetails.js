@@ -39,8 +39,11 @@ const OrderDetails = () => {
       console.log('Razorpay response:', response.data); // Debug log
       const { order } = response.data;
 
+      const keyResponse = await api.get('/user/razorpay-key');
+      const { key } = keyResponse.data;
+
       const options = {
-        key: 'rzp_test_RchtsYaiULfqOl',
+        key: key,
         amount: order.amount,
         currency: order.currency,
         name: 'Pizza Palace',

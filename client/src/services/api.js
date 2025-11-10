@@ -10,6 +10,4 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-export const RAZORPAY_KEY_ID = 'rzp_test_RchtsYaiULfqOl';
-
 export default API;

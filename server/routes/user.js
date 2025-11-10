@@ -124,4 +124,9 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
+// Get Razorpay key
+router.get('/razorpay-key', (req, res) => {
+  res.send({ key: process.env.RAZORPAY_KEY_ID });
+});
+
 module.exports = router;
